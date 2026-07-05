@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-enum SeatState { open, locked, occupied, reserved }
+enum SeatState { open, locked, occupied, reserved, disabled }
 
 class SeatModel {
   final int seatNumber;
@@ -11,10 +11,22 @@ class SeatModel {
   final String? userName;
   final String? photo;
 
+  /// listener
+  /// speaker
+  /// moderator
+  /// admin
+  /// host
+  final String role;
+
   final bool micOn;
+
   final bool isSpeaking;
 
-  final String role;
+  /// muted by host/admin
+  final bool mutedByAdmin;
+
+  /// seat invitation pending
+  final bool invited;
 
   final Timestamp? joinedAt;
 
@@ -24,9 +36,11 @@ class SeatModel {
     this.userId,
     this.userName,
     this.photo,
+    this.role = "listener",
     this.micOn = true,
     this.isSpeaking = false,
-    this.role = "listener",
+    this.mutedByAdmin = false,
+    this.invited = false,
     this.joinedAt,
   });
 
@@ -37,9 +51,11 @@ class SeatModel {
       userId: json['userId'],
       userName: json['userName'],
       photo: json['photo'],
+      role: json['role'] ?? 'listener',
       micOn: json['micOn'] ?? true,
       isSpeaking: json['isSpeaking'] ?? false,
-      role: json['role'] ?? "listener",
+      mutedByAdmin: json['mutedByAdmin'] ?? false,
+      invited: json['invited'] ?? false,
       joinedAt: json['joinedAt'],
     );
   }
@@ -51,9 +67,11 @@ class SeatModel {
       'userId': userId,
       'userName': userName,
       'photo': photo,
+      'role': role,
       'micOn': micOn,
       'isSpeaking': isSpeaking,
-      'role': role,
+      'mutedByAdmin': mutedByAdmin,
+      'invited': invited,
       'joinedAt': joinedAt,
     };
   }
@@ -62,10 +80,16 @@ class SeatModel {
     switch (value) {
       case 'locked':
         return SeatState.locked;
+
       case 'occupied':
         return SeatState.occupied;
+
       case 'reserved':
         return SeatState.reserved;
+
+      case 'disabled':
+        return SeatState.disabled;
+
       default:
         return SeatState.open;
     }
@@ -77,9 +101,11 @@ class SeatModel {
     String? userId,
     String? userName,
     String? photo,
+    String? role,
     bool? micOn,
     bool? isSpeaking,
-    String? role,
+    bool? mutedByAdmin,
+    bool? invited,
     Timestamp? joinedAt,
   }) {
     return SeatModel(
@@ -88,9 +114,11 @@ class SeatModel {
       userId: userId ?? this.userId,
       userName: userName ?? this.userName,
       photo: photo ?? this.photo,
+      role: role ?? this.role,
       micOn: micOn ?? this.micOn,
       isSpeaking: isSpeaking ?? this.isSpeaking,
-      role: role ?? this.role,
+      mutedByAdmin: mutedByAdmin ?? this.mutedByAdmin,
+      invited: invited ?? this.invited,
       joinedAt: joinedAt ?? this.joinedAt,
     );
   }
