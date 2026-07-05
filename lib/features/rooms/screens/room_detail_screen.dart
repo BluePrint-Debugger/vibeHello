@@ -5,6 +5,8 @@ import '../services/room_seat_service.dart';
 import '../../chat/models/chat_message_model.dart';
 import '../../chat/services/chat_service.dart';
 import '../models/room_model.dart';
+import '../services/seat_service.dart';
+import '../models/seat_model.dart';
 
 class RoomDetailScreen extends StatefulWidget {
   final RoomModel room;
@@ -19,6 +21,7 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
   final TextEditingController messageController = TextEditingController();
   final ChatService chatService = ChatService();
   final currentUser = FirebaseAuth.instance.currentUser;
+  final SeatService seatService = SeatService();
 
   bool micOn = true;
   bool showChat = true;
@@ -196,15 +199,10 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
               builder: (context, adminSnapshot) {
                 final isAdmin = adminSnapshot.data?.exists == true;
 
-                return StreamBuilder<QuerySnapshot>(
-                  stream: FirebaseFirestore.instance
-                      .collection('rooms')
-                      .doc(widget.room.id)
-                      .collection('seats')
-                      .orderBy('seatNumber')
-                      .snapshots(),
+                return StreamBuilder<List<SeatModel>>(
+                  stream: seatService.getSeats(widget.room.id),
                   builder: (context, snapshot) {
-                    final seats = snapshot.data?.docs ?? [];
+                    final seats = snapshot.data ?? [];
 
                     if (widget.room.roomType == 'stage') {
                       return _StageMembersView(
@@ -323,8 +321,41 @@ class _RoomHeader extends StatelessWidget {
   }
 }
 
+Map<String, dynamic> _seatModelToMap(SeatModel seat) {
+  final dynamic seatData = seat;
+  final dynamic mapped = seatData.toMap?.call() ?? seatData.toJson?.call();
+
+  if (mapped is Map) {
+    final map = Map<String, dynamic>.from(mapped as Map);
+    if (map.containsKey('photo') && map.containsKey('name')) {
+      return map;
+    }
+
+    if (map.containsKey('userPhoto') && map.containsKey('userName')) {
+      map['photo'] = map['userPhoto'];
+      map['name'] = map['userName'] ?? 'Player';
+      return map;
+    }
+
+    return map;
+  }
+
+  return {
+    'seatNumber': seatData.seatNumber,
+    'userId': seatData.userId,
+    'userName': seatData.userName,
+    'userPhoto': seatData.userPhoto,
+    'photo': seatData.userPhoto,
+    'name': seatData.userName ?? 'Player',
+    'isMicOn': seatData.isMicOn,
+    'mutedByAdmin': seatData.mutedByAdmin,
+    'isSpeaking': seatData.isSpeaking,
+    'isLocked': seatData.isLocked,
+  };
+}
+
 class _LiveMembersView extends StatelessWidget {
-  final List<QueryDocumentSnapshot> seats;
+  final List<SeatModel> seats;
   final Color accentColor;
   final String roomId;
   final bool isAdmin;
@@ -348,7 +379,7 @@ class _LiveMembersView extends StatelessWidget {
 }
 
 class _GamingMembersView extends StatelessWidget {
-  final List<QueryDocumentSnapshot> members;
+  final List<SeatModel> members;
   final Color accentColor;
   final String roomId;
   final bool isAdmin;
@@ -381,7 +412,7 @@ class _GamingMembersView extends StatelessWidget {
 }
 
 class _StageMembersView extends StatelessWidget {
-  final List<QueryDocumentSnapshot> members;
+  final List<SeatModel> members;
   final Color accentColor;
   final String roomId;
   final bool isAdmin;
@@ -397,15 +428,15 @@ class _StageMembersView extends StatelessWidget {
   Widget build(BuildContext context) {
     final host = members.isNotEmpty ? members.first : null;
 
-    final List<QueryDocumentSnapshot> others = members.length > 1
+    final List<SeatModel> others = members.length > 1
         ? members.sublist(1)
-        : <QueryDocumentSnapshot>[];
+        : <SeatModel>[];
 
     return Column(
       children: [
         if (host != null)
           _BigHostCard(
-            data: host.data() as Map<String, dynamic>,
+            data: _seatModelToMap(host),
             accentColor: accentColor,
             roomId: roomId,
             isAdmin: isAdmin,
@@ -480,12 +511,13 @@ class _BigHostCard extends StatelessWidget {
 }
 
 class _SeatsGridView extends StatelessWidget {
-  final List<QueryDocumentSnapshot> seats;
+  final List<SeatModel> seats;
   final Color accentColor;
   final String roomId;
   final bool isAdmin;
 
   const _SeatsGridView({
+    super.key,
     required this.seats,
     required this.accentColor,
     required this.roomId,
@@ -506,10 +538,8 @@ class _SeatsGridView extends StatelessWidget {
         childAspectRatio: 1,
       ),
       itemBuilder: (context, index) {
-        final data = seats[index].data() as Map<String, dynamic>;
-
         return _MemberCard(
-          data: data,
+          seat: seats[index],
           accentColor: accentColor,
           roomId: roomId,
           isAdmin: isAdmin,
@@ -520,13 +550,14 @@ class _SeatsGridView extends StatelessWidget {
 }
 
 class _MemberCard extends StatelessWidget {
-  final Map<String, dynamic> data;
+  final SeatModel seat;
   final Color accentColor;
   final String roomId;
   final bool isAdmin;
 
   const _MemberCard({
-    required this.data,
+    super.key,
+    required this.seat,
     required this.accentColor,
     required this.roomId,
     required this.isAdmin,
@@ -536,16 +567,15 @@ class _MemberCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
 
-    final seatNumber = data['seatNumber'] ?? 0;
-    final isLocked = data['isLocked'] == true;
-    final userId = data['userId'];
-    final userPhoto = data['userPhoto'] ?? '';
-    final isMicOn = data['isMicOn'] == true;
-    final mutedByAdmin = data['mutedByAdmin'] == true;
-    final isSpeaking = data['isSpeaking'] == true;
+    final seatNumber = seat.seatNumber;
 
-    final isEmpty = userId == null || userId.toString().isEmpty;
-    final isMySeat = userId == user?.uid;
+    final isLocked = seat.state == SeatState.locked;
+
+    final isOccupied = seat.state == SeatState.occupied;
+
+    final isEmpty = seat.state == SeatState.open;
+
+    final isMySeat = seat.userId == user?.uid;
 
     return InkWell(
       borderRadius: BorderRadius.circular(100),
@@ -555,7 +585,7 @@ class _MemberCard extends StatelessWidget {
         if (isLocked) {
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(const SnackBar(content: Text('This seat is locked')));
+          ).showSnackBar(const SnackBar(content: Text("This seat is locked")));
           return;
         }
 
@@ -564,8 +594,8 @@ class _MemberCard extends StatelessWidget {
             roomId: roomId,
             seatNumber: seatNumber,
             userId: user.uid,
-            userName: user.displayName ?? 'Player',
-            userPhoto: user.photoURL ?? '',
+            userName: user.displayName ?? "Player",
+            userPhoto: user.photoURL ?? "",
           );
           return;
         }
@@ -574,117 +604,54 @@ class _MemberCard extends StatelessWidget {
           await RoomSeatService().leaveSeat(
             roomId: roomId,
             seatNumber: seatNumber,
-            userName: user.displayName ?? 'Player',
+            userName: user.displayName ?? "Player",
           );
         }
       },
-      onLongPress: !isAdmin
+
+      onLongPress: (!isAdmin || !isOccupied)
           ? null
           : () {
-              showModalBottomSheet(
-                context: context,
-                backgroundColor: const Color(0xFF11182E),
-                builder: (_) {
-                  return SafeArea(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        ListTile(
-                          leading: Icon(
-                            isLocked ? Icons.lock_open : Icons.lock,
-                            color: Colors.white,
-                          ),
-                          title: Text(
-                            isLocked ? 'Unlock Seat' : 'Lock Seat',
-                            style: const TextStyle(color: Colors.white),
-                          ),
-                          onTap: () async {
-                            Navigator.pop(context);
-                            await RoomSeatService().toggleSeatLock(
-                              roomId: roomId,
-                              seatNumber: seatNumber,
-                              isLocked: !isLocked,
-                            );
-                          },
-                        ),
-                        if (!isEmpty)
-                          ListTile(
-                            leading: const Icon(
-                              Icons.volume_off,
-                              color: Colors.white,
-                            ),
-                            title: Text(
-                              mutedByAdmin ? 'Unmute User' : 'Mute User',
-                              style: const TextStyle(color: Colors.white),
-                            ),
-                            onTap: () async {
-                              Navigator.pop(context);
-                              await RoomSeatService().adminMuteUser(
-                                roomId: roomId,
-                                seatNumber: seatNumber,
-                                muted: !mutedByAdmin,
-                              );
-                            },
-                          ),
-                        if (!isEmpty)
-                          ListTile(
-                            leading: const Icon(
-                              Icons.event_seat,
-                              color: Colors.white,
-                            ),
-                            title: const Text(
-                              'Remove From Seat',
-                              style: TextStyle(color: Colors.white),
-                            ),
-                            onTap: () async {
-                              Navigator.pop(context);
-                              await RoomSeatService().leaveSeat(
-                                roomId: roomId,
-                                seatNumber: seatNumber,
-                                userName: data['userName'] ?? 'Player',
-                              );
-                            },
-                          ),
-                      ],
-                    ),
-                  );
-                },
-              );
+              _showSeatAdminMenu(context);
             },
+
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 250),
         decoration: BoxDecoration(
           shape: BoxShape.circle,
+
           border: Border.all(
-            color: isSpeaking
+            color: seat.isSpeaking
                 ? Colors.greenAccent
                 : isLocked
                 ? Colors.amber
                 : accentColor,
-            width: isSpeaking ? 3 : 2,
+            width: seat.isSpeaking ? 3 : 2,
           ),
-          boxShadow: isSpeaking
+
+          boxShadow: seat.isSpeaking
               ? [
                   BoxShadow(
-                    color: Colors.greenAccent.withOpacity(0.45),
+                    color: Colors.greenAccent.withOpacity(.5),
                     blurRadius: 18,
-                    spreadRadius: 2,
+                    spreadRadius: 3,
                   ),
                 ]
               : [],
         ),
+
         child: Center(
           child: isLocked
-              ? const Icon(Icons.lock, color: Colors.amber, size: 30)
+              ? const Icon(Icons.lock, color: Colors.amber, size: 32)
               : isEmpty
               ? Icon(Icons.add, color: accentColor, size: 38)
               : Stack(
                   alignment: Alignment.bottomRight,
                   children: [
                     ClipOval(
-                      child: userPhoto.isNotEmpty
+                      child: seat.photo != null && seat.photo!.isNotEmpty
                           ? Image.network(
-                              userPhoto,
+                              seat.photo!,
                               width: double.infinity,
                               height: double.infinity,
                               fit: BoxFit.cover,
@@ -698,7 +665,8 @@ class _MemberCard extends StatelessWidget {
                               ),
                             ),
                     ),
-                    if (!isMicOn || mutedByAdmin)
+
+                    if (!seat.micOn)
                       const CircleAvatar(
                         radius: 11,
                         backgroundColor: Colors.redAccent,
@@ -712,6 +680,78 @@ class _MemberCard extends StatelessWidget {
                 ),
         ),
       ),
+    );
+  }
+
+  void _showSeatAdminMenu(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF11182E),
+      builder: (_) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: Icon(
+                  seat.state == SeatState.locked ? Icons.lock_open : Icons.lock,
+                  color: Colors.white,
+                ),
+                title: Text(
+                  seat.state == SeatState.locked ? "Unlock Seat" : "Lock Seat",
+                  style: const TextStyle(color: Colors.white),
+                ),
+                onTap: () async {
+                  Navigator.pop(context);
+
+                  await RoomSeatService().toggleSeatLock(
+                    roomId: roomId,
+                    seatNumber: seat.seatNumber,
+                    isLocked: seat.state != SeatState.locked,
+                  );
+                },
+              ),
+
+              ListTile(
+                leading: Icon(
+                  seat.micOn ? Icons.mic_off : Icons.mic,
+                  color: Colors.white,
+                ),
+                title: Text(
+                  seat.micOn ? "Mute User" : "Unmute User",
+                  style: const TextStyle(color: Colors.white),
+                ),
+                onTap: () async {
+                  Navigator.pop(context);
+
+                  await RoomSeatService().adminMuteUser(
+                    roomId: roomId,
+                    seatNumber: seat.seatNumber,
+                    muted: seat.micOn,
+                  );
+                },
+              ),
+
+              ListTile(
+                leading: const Icon(Icons.event_seat, color: Colors.white),
+                title: const Text(
+                  "Remove From Seat",
+                  style: TextStyle(color: Colors.white),
+                ),
+                onTap: () async {
+                  Navigator.pop(context);
+
+                  await RoomSeatService().leaveSeat(
+                    roomId: roomId,
+                    seatNumber: seat.seatNumber,
+                    userName: seat.userName ?? "Player",
+                  );
+                },
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
