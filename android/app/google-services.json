@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "479063971697",
+    "project_id": "vibehello-5ec29",
+    "storage_bucket": "vibehello-5ec29.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:479063971697:android:d76b560a871211295c88d0",
+        "android_client_info": {
+          "package_name": "com.example.vibehello"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "479063971697-q52khd6hpf5dudd2p51tefh800pdc6sg.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.vibehello",
+            "certificate_hash": "5e2d193b2025454f16cfb2be43eb3160d95fe6e8"
+          }
+        },
+        {
+          "client_id": "479063971697-ql5ou0ov0r6s39ub12o9ltpbmvr5014v.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAKI-qYcUC-HuqYDS3Be1u8Hy1T3I1w4V0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "479063971697-ql5ou0ov0r6s39ub12o9ltpbmvr5014v.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "479063971697-cf9quhldcq3qgl96d1gdfeibqrgfa2gf.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.vibehello"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
