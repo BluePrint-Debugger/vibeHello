@@ -5,9 +5,9 @@ import 'game_match_service.dart';
 /// Real-time Connect Four on top of `game_matches`.
 ///
 /// Board state lives at `state`:
-///   board: List<String> length 42 (6 rows x 7 cols, row-major, row 0 = top)
+///   board: List of 42 strings (6 rows x 7 cols, row-major, row 0 = top)
 ///   turn: userId whose turn it is
-///   symbols: { userId: 'R' | 'Y' }
+///   symbols: Map userId to 'R' or 'Y'
 class ConnectFourService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final GameMatchService _matchService = GameMatchService();

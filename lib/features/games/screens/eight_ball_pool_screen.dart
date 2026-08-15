@@ -19,7 +19,7 @@ class EightBallPoolScreen extends StatefulWidget {
   const EightBallPoolScreen({super.key, required this.roomId});
 
   @override
-  State<EightBallPoolScreen> createState() => _EightBallPoolScreenState;
+  State<EightBallPoolScreen> createState() => _EightBallPoolScreenState();
 }
 
 class _EightBallPoolScreenState extends State<EightBallPoolScreen> {
@@ -29,6 +29,8 @@ class _EightBallPoolScreenState extends State<EightBallPoolScreen> {
   final GameVoiceStatusService voiceStatusService = GameVoiceStatusService();
 
   bool _voiceJoined = false;
+  late final Map<String, dynamic> playerNames = {};
+  late final Map<String, dynamic> state = {};
   bool _initialized = false;
   bool _resultShown = false;
 
@@ -192,12 +194,12 @@ class _EightBallPoolScreenState extends State<EightBallPoolScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _PoolScorePanel(
+                    _poolScorePanel(
                       name: playerNames[_uid] ?? 'You',
                       ballsPotted: ballsPotted.where((b) => b.contains('White')).length,
                       isMyTurn: isMyTurn,
                     ),
-                    _PoolScorePanel(
+                    _poolScorePanel(
                       name: playerNames[players.firstWhere(
                         (p) => p != _uid,
                         orElse: () => 'opponent',
@@ -234,7 +236,7 @@ class _EightBallPoolScreenState extends State<EightBallPoolScreen> {
     );
   }
 
-  Widget _PoolScorePanel({
+  Widget _poolScorePanel({
     required String name,
     required int ballsPotted,
     required bool isMyTurn,
@@ -242,7 +244,7 @@ class _EightBallPoolScreenState extends State<EightBallPoolScreen> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Theme.of(context).extension<AppTheme>().darkColors.surface,
+        color: AppTheme.darkColors.surface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.white10),
       ),
@@ -364,7 +366,7 @@ class _ShootButton extends StatelessWidget {
       ),
       child: Center(
         child: Text(
-          'Shoot (Power: ${isMyTurn ? 'Full' : 'Waiting»})',
+          isMyTurn ? 'Shoot (Power: Full)' : 'Shoot (Power: Waiting)',
           style: const TextStyle(
             color: Colors.black,
             fontWeight: FontWeight.bold,

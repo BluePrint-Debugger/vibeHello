@@ -3,14 +3,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/room_role.dart';
 import '../models/seat_model.dart';
 import '../repositories/room_repository.dart';
-import 'member_service.dart';
 
 class SeatService {
   SeatService();
 
   final RoomRepository _repository = RoomRepository.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final MemberService _memberService = MemberService();
 
   Stream<List<SeatModel>> getSeats(String roomId) {
     return _repository

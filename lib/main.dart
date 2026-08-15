@@ -1,8 +1,8 @@
+import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'features/chat/services/message_notification_service.dart';
+import 'features/auth/screens/onboarding_screen.dart';
 import 'features/auth/screens/login_screen.dart';
 import 'firebase_options.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -13,6 +13,7 @@ import 'services/notification_service.dart';
 import 'core/theme_controller.dart';
 import 'core/app_theme.dart';
 import 'features/chat/services/voip_call_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 final navigatorKey = GlobalKey<NavigatorState>();
 
@@ -21,10 +22,6 @@ void main() async {
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  // Must be registered before runApp, right after Firebase init, per
-  // FCM's documented setup - this is what lets a message be processed
-  // (or, for notification-only payloads like incoming calls, simply
-  // displayed by the OS) while the app is backgrounded or fully closed.
   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
   await LocalNotificationService().init();
@@ -40,25 +37,44 @@ void main() async {
   runApp(const VibeHelloApp());
 }
 
-class VibeHelloApp extends StatelessWidget {
+class VibeHelloApp extends StatefulWidget {
   const VibeHelloApp({super.key});
 
   @override
+  State<VibeHelloApp> createState() => _VibeHelloAppState();
+}
+
+class _VibeHelloAppState extends State<VibeHelloApp> {
+  late bool _onboardingCompleted;
+  late bool _userLoggedIn;
+
+  @override
+  initState() {
+    super.initState();
+    _initPrefs();
+  }
+
+  Future<void> _initPrefs() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _onboardingCompleted = prefs.getBool('onboarding_completed') ?? false;
+      _userLoggedIn = FirebaseAuth.instance.currentUser != null;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<ThemeMode>(
-      valueListenable: ThemeController.instance.themeMode,
-      builder: (context, mode, _) {
-        return MaterialApp(
-          navigatorKey: navigatorKey,
-          debugShowCheckedModeBanner: false,
-          theme: AppTheme.light,
-          darkTheme: AppTheme.dark,
-          themeMode: mode,
-          home: FirebaseAuth.instance.currentUser != null
-              ? const MainNavigationScreen()
+    return MaterialApp(
+      navigatorKey: navigatorKey,
+      debugShowCheckedModeBanner: false,
+      theme: AppTheme.light,
+      darkTheme: AppTheme.dark,
+      themeMode: ThemeController.instance.themeMode.value,
+      home: _userLoggedIn
+          ? const MainNavigationScreen()
+          : !_onboardingCompleted
+              ? const OnboardingScreen()
               : const LoginScreen(),
-        );
-      },
     );
   }
 }

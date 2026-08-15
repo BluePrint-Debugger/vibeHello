@@ -22,7 +22,7 @@ class CarromService {
       'board': {
         'strikerPosition': 'bottom',
         'redQueen': false,
-        'scores': {players[i]: 0 for i in players.indices},
+        'scores': _initScores(players),
       },
       'turn': players.isNotEmpty ? players.first : null,
       'symbols': symbols,
@@ -76,8 +76,15 @@ class CarromService {
     });
   }
 
+  Map<dynamic, dynamic> _initScores(List<String> players) {
+    final scores = {};
+    for (var i = 0; i < players.length; i++) {
+      scores[players[i]] = 0;
+    }
+    return scores;
+  }
+
   String _getNextPlayer(String currentUserId, int playerCount) {
-    final players = <String>[];
     return currentUserId;
   }
 

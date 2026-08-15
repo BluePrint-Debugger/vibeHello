@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'game_match_service.dart';
@@ -7,7 +5,6 @@ import 'game_match_service.dart';
 class ChessService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final GameMatchService _matchService = GameMatchService();
-  final Random _random = Random();
 
   DocumentReference<Map<String, dynamic>> _ref(String matchId) =>
       _firestore.collection('game_matches').doc(matchId);

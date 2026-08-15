@@ -98,7 +98,10 @@ class _KnifeHitScreenState extends State<KnifeHitScreen>
 
     final finished =
         _lives <= 0 || _score >= KnifeHitService.winningScore;
-    if (finished) _myRunFinished = true;
+    if (finished) {
+      _myRunFinished = true;
+      _rotationController.stop();
+    }
 
     _service.reportThrow(
       matchId: widget.roomId,
@@ -112,6 +115,7 @@ class _KnifeHitScreenState extends State<KnifeHitScreen>
     if (_resultShown) return;
     if (data['status'] != 'finished') return;
     _resultShown = true;
+    _rotationController.stop();
 
     final user = FirebaseAuth.instance.currentUser;
     final players = List<String>.from(data['players'] ?? []);

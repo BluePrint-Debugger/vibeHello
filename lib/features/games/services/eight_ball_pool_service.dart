@@ -35,13 +35,13 @@ class EightBallPoolService {
     final state = Map<String, dynamic>.from(snap.data()!['state'] ?? {});
     final ballsPotted = List<String>.from(state['ballsPotted'] ?? []);
     final turn = state['turn'] as String?;
-    final playerCount = (state['playerCount'] as int?) ?? 2;
 
     if (turn != userId) return;
 
     if (action == 'shoot') {
       if (_random.nextDouble() > 0.5) {
-        final newBall = _random.choice(['1', '2', '3', '4', '5', '6', '7', '8']);
+        final newBallIndex = _random.nextInt(8);
+        final newBall = ['1', '2', '3', '4', '5', '6', '7', '8'][newBallIndex];
         if (!ballsPotted.contains(newBall)) {
           ballsPotted.add(newBall);
         }

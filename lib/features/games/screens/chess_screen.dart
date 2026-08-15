@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import '../services/chess_service.dart';
 import '../services/game_chat_service.dart';
@@ -19,7 +19,7 @@ class ChessScreen extends StatefulWidget {
   const ChessScreen({super.key, required this.roomId});
 
   @override
-  State<ChessScreen> createState() => _ChessScreenState;
+  State<ChessScreen> createState() => _ChessScreenState();
 }
 
 class _ChessScreenState extends State<ChessScreen> {
@@ -29,6 +29,8 @@ class _ChessScreenState extends State<ChessScreen> {
   final GameVoiceStatusService voiceStatusService = GameVoiceStatusService();
 
   bool _voiceJoined = false;
+  late Map<String, dynamic> playerNames;
+  late Map<String, dynamic> state;
   bool _initialized = false;
   bool _resultShown = false;
 
@@ -37,11 +39,10 @@ class _ChessScreenState extends State<ChessScreen> {
   Future<void> _ensureInitialized(Map<String, dynamic> data) async {
     if (_initialized) return;
     _initialized = true;
-
-    final state = Map<String, dynamic>.from(data['state'] ?? {});
+    playerNames = Map<String, dynamic>.from(data['playerNames'] ?? {});
+    state = Map<String, dynamic>.from(data['state'] ?? {});
     if (state.isEmpty) {
-      final players = List<String>.from(data['players'] ?? []);
-      await _service.initGame(widget.roomId, players);
+      await _service.initGame(widget.roomId, List<String>.from(data['players'] ?? []));
     }
   }
 
@@ -55,8 +56,7 @@ class _ChessScreenState extends State<ChessScreen> {
     _resultShown = true;
 
     final user = FirebaseAuth.instance.currentUser;
-    final players = _getPlayersFromState(data);
-    final playerNames = Map<String, dynamic>.from(data['playerNames'] ?? {});
+    final players = _getPlayersFromState(state);
     final winnerId = data['winner'] as String?;
     final isDraw = data['gameOver'] == true && winnerId == null;
     final opponentId = players.firstWhere(
@@ -137,9 +137,9 @@ class _ChessScreenState extends State<ChessScreen> {
     } catch (e) {
       debugPrint('AGORA MIC ERROR: $e');
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Mic error: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Mic error: $e')),
+        );
       }
     }
   }
@@ -179,10 +179,9 @@ class _ChessScreenState extends State<ChessScreen> {
           _ensureInitialized(data);
           _handleFinish(data);
 
-          final state = Map<String, dynamic>.from(data['state'] ?? {});
           final turn = state['turn'] as String?;
           final isMyTurn = turn == _uid;
-          final players = _getPlayersFromState(data);
+          final players = _getPlayersFromState(state);
 
           return Padding(
             padding: const EdgeInsets.all(16),
@@ -191,11 +190,11 @@ class _ChessScreenState extends State<ChessScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _ChessScorePanel(
+                    _chessScorePanel(
                       name: playerNames[_uid] ?? 'You',
                       isMyTurn: isMyTurn,
                     ),
-                    _ChessScorePanel(
+                    _chessScorePanel(
                       name: playerNames[players.firstWhere(
                         (p) => p != _uid,
                         orElse: () => 'opponent',
@@ -221,14 +220,14 @@ class _ChessScreenState extends State<ChessScreen> {
     );
   }
 
-  Widget _ChessScorePanel({
+  Widget _chessScorePanel({
     required String name,
     required bool isMyTurn,
   }) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Theme.of(context).extension<AppTheme>().darkColors.surface,
+        color: AppTheme.darkColors.surface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.white10),
       ),
@@ -237,7 +236,7 @@ class _ChessScreenState extends State<ChessScreen> {
         children: [
           Text(
             name,
-            style: TextStyle(
+            style: const TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.bold,
               fontSize: 14,
@@ -255,6 +254,10 @@ class _ChessScreenState extends State<ChessScreen> {
         ],
       ),
     );
+  }
+
+  void _handleMove() {
+    // Handle player move
   }
 }
 

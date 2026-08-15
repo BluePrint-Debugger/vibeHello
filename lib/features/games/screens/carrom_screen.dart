@@ -19,7 +19,7 @@ class CarromScreen extends StatefulWidget {
   const CarromScreen({super.key, required this.roomId});
 
   @override
-  State<CarromScreen> createState() => _CarromScreenState;
+  State<CarromScreen> createState() => _CarromScreenState();
 }
 
 class _CarromScreenState extends State<CarromScreen> {
@@ -195,13 +195,13 @@ class _CarromScreenState extends State<CarromScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _ScorePanel(
+                    _scorePanel(
                       name: playerNames[_uid] ?? 'You',
                       symbol: 'White',
                       score: scores[_uid] ?? 0,
                       isMyTurn: isMyTurn,
                     ),
-                    _ScorePanel(
+                    _scorePanel(
                       name: playerNames[players.firstWhere(
                         (p) => p != _uid,
                         orElse: () => 'opponent',
@@ -242,7 +242,7 @@ class _CarromScreenState extends State<CarromScreen> {
     );
   }
 
-  Widget _ScorePanel({
+  Widget _scorePanel({
     required String name,
     required String symbol,
     required int score,
@@ -251,7 +251,7 @@ class _CarromScreenState extends State<CarromScreen> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Theme.of(context).extension<AppTheme>().darkColors.surface,
+        color: AppTheme.darkColors.surface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.white10),
       ),
@@ -412,7 +412,7 @@ class _StrikeButton extends StatelessWidget {
       ),
       child: Center(
         child: Text(
-          'Strike (Power: ${isMyTurn ? 'Full' : 'Waiting»})',
+          isMyTurn ? 'Strike (Power: Full)' : 'Strike (Power: Waiting)',
           style: const TextStyle(
             color: Colors.black,
             fontWeight: FontWeight.bold,

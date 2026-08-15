@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'game_match_service.dart';
@@ -12,9 +10,13 @@ class LudeService {
       _firestore.collection('game_matches').doc(matchId);
 
   Future<void> initGame(String matchId, List<String> players) async {
+    final symbols = {};
+    for (var i = 0; i < players.length; i++) {
+      symbols[players[i]] = 'Token_$i';
+    }
     await _matchService.initState(matchId, {
       'turn': players.isNotEmpty ? players.first : null,
-      'symbols': {players[i]: 'Token_$i' for i in players.indices},
+      'symbols': symbols,
       'playerCount': players.length,
     });
   }
@@ -58,8 +60,8 @@ class LudeService {
     }
   }
 
-  int _moveToken(String currentPos, int diceValue, int playerCount) {
-    int pos = currentPos is String ? int.parse(currentPos) : currentPos;
+  int _moveToken(dynamic currentPos, int diceValue, int playerCount) {
+    int pos = currentPos is String ? int.parse(currentPos) : currentPos as int;
     if (pos >= 54 || pos < 0) return -1;
     return pos + diceValue;
   }

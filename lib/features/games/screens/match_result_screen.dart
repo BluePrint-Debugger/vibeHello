@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/app_theme.dart';
@@ -34,6 +35,29 @@ class MatchResultScreen extends StatelessWidget {
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     }
+  }
+
+  Future<bool> _showReviewDialog(BuildContext context) async {
+    return await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: const Text('Rate ViBeHeLLo'),
+        content: const Text(
+          'Enjoying the app? Take a moment to rate us on Play Store and help us improve!',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('No, maybe later'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Yes, rate us'),
+          ),
+        ],
+      ),
+    ) ?? false;
   }
 
   @override
@@ -116,30 +140,51 @@ class MatchResultScreen extends StatelessWidget {
               width: double.infinity,
               height: 55,
               child: ElevatedButton(
-                onPressed: onPlayAgain,
+                onPressed: () async {
+                  final prefs = await SharedPreferences.getInstance();
+                  final games = (prefs.getInt('games_played_for_review') ?? 0) + 1;
+                  await prefs.setInt('games_played_for_review', games);
+                  if (games >= 5) {
+                    final shown = prefs.getBool('review_shown') ?? false;
+                    if (!shown) {
+                      final shouldRate = await _showReviewDialog(context);
+                      if (shouldRate) {
+                        final uri = Uri.parse('https://play.google.com/store/apps/details?id=vibehello');
+                        if (await canLaunchUrl(uri)) {
+                          await launchUrl(uri, mode: LaunchMode.externalApplication);
+                        }
+                        await prefs.setBool('review_shown', true);
+                      }
+                    }
+                  }
+                  onPlayAgain();
+                },
                 child: Text(currentUserWon ? 'One More Win' : 'Play Again'),
               ),
             ),
 
             const SizedBox(height: 14),
 
-            SizedBox(
-              width: double.infinity,
-              height: 55,
-              child: OutlinedButton(
-                onPressed: onMoreGame,
-                child: const Text('More Game'),
-              ),
-            ),
-
-            const SizedBox(height: 14),
-            SizedBox(
-              width: double.infinity,
-              height: 55,
-              child: OutlinedButton(
-                onPressed: () => _rateApp(),
-                child: const Text('Rate Us'),
-              ),
+            Row(
+              children: [
+                SizedBox(
+                  width: double.infinity,
+                  height: 55,
+                  child: OutlinedButton(
+                    onPressed: onMoreGame,
+                    child: const Text('More Game'),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                SizedBox(
+                  width: double.infinity,
+                  height: 55,
+                  child: OutlinedButton(
+                    onPressed: () => _rateApp(),
+                    child: const Text('Rate Us'),
+                  ),
+                ),
+              ],
             ),
 
             const SizedBox(height: 14),
@@ -148,7 +193,8 @@ class MatchResultScreen extends StatelessWidget {
       ),
     );
   }
-}
+
+  }
 
 class _PlayerResultCard extends StatelessWidget {
   final String name;

@@ -12,9 +12,9 @@ import 'game_match_service.dart';
 /// turn. Whoever has matched the most pairs when the board clears wins.
 ///
 /// Board state lives at `state`:
-///   cards: List<String> length 16 - the symbol at each position
-///   matchedBy: List<String?> length 16 - who matched that position, if any
-///   flippedIndices: List<int> length 0-2 - currently face-up, unresolved
+///   cards: List of 16 strings - the symbol at each position
+///   matchedBy: List of 16 strings? - who matched that position, if any
+///   flippedIndices: List of 0-2 integers - currently face-up, unresolved
 ///   turn: userId whose turn it is
 class MemoryMatchService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;

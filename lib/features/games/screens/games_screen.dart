@@ -266,17 +266,54 @@ class GamesScreen extends StatelessWidget {
                       ),
 
                       _FeaturedGameCard(
-                        title: 'Tournaments',
-                        subtitle: 'Compete in tournaments and win big',
-                        icon: Icons.flash_on,
-                        color: Colors.greenAccent,
-                        badgeText: 'Live Soon',
-                        buttonText: 'Notify Me',
+                        title: 'Lude',
+                        subtitle: 'Real-time voice & chat multiplayer',
+                        icon: Icons.volume_up,
+                        color: Colors.deepPurpleAccent,
+                        badgeText: 'Play Now',
+                        buttonText: 'Play Now',
                         onTap: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                'Tournament notifications coming soon',
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const MatchmakingScreen(
+                                gameType: 'Lude',
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                      _FeaturedGameCard(
+                        title: '8 Ball Pool',
+                        subtitle: 'Classic 8-ball billiards with voice chat',
+                        icon: Icons.pool,
+                        color: Colors.deepOrangeAccent,
+                        badgeText: 'Play Now',
+                        buttonText: 'Play Now',
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const MatchmakingScreen(
+                                gameType: '8 Ball Pool',
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                      _FeaturedGameCard(
+                        title: 'Carrom',
+                        subtitle: 'Traditional carrom board game with friends',
+                        icon: Icons.style,
+                        color: Colors.orangeAccent,
+                        badgeText: 'Play Now',
+                        buttonText: 'Play Now',
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const MatchmakingScreen(
+                                gameType: 'Carrom',
                               ),
                             ),
                           );

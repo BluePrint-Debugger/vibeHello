@@ -107,6 +107,12 @@ class MatchmakingService {
         return 'Drop Master';
       case 'Memory Match':
         return 'Recall Bot';
+      case 'Lude':
+        return 'Lude Bot';
+      case '8 Ball Pool':
+        return '8 Ball Bot';
+      case 'Carrom':
+        return 'Carrom Bot';
       default:
         return '$gameType Bot';
     }

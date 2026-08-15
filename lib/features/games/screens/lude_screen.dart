@@ -1,8 +1,8 @@
-import 'dart:async';
+import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import '../services/lude_service.dart';
 import '../services/game_chat_service.dart';
@@ -102,21 +102,163 @@ class _LudeScreenState extends State<LudeScreen> {
   void dispose() { gameVoiceService.leave(); super.dispose(); }
   @override
   Widget build(BuildContext context) {
-    return Scaffold(backgroundColor: context.appColors.background, appBar: AppBar(backgroundColor: Colors.black, elevation: 0, title: const Text('Lude'), actions: [IconButton(icon: Icon(_voiceJoined ? Icons.mic : Icons.mic_off), color: _voiceJoined ? Colors.greenAccent : Colors.white54, onPressed: _toggleMic),)]), body: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(stream: _service.watchGame(widget.roomId), builder: (context, snapshot) {
-      if (!snapshot.hasData || !snapshot.data!.exists) return const Center(child: CircularProgressIndicator());
-      final data = snapshot.data!.data()!; state = Map<String, dynamic>.from(data['state'] ?? {});
-      _ensureInitialized(data);
-      _maybeBotMove(data);
-      _handleFinish(data);
-      final players = List<String>.from(data['players'] ?? []);
-      final playerNames = Map<String, dynamic>.from(data['playerNames'] ?? {});
-      final turn = state['turn'] as String?;
-      final isMyTurn = turn == _uid;
-      final opponentId = players.firstWhere((p) => p != _uid, orElse: () => 'opponent');
-      return Padding(padding: const EdgeInsets.all(16), child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Row(children: [Expanded(child: _PlayerPanel(name: playerNames[_uid] ?? 'You', symbol: 'Token', isMyTurn: isMyTurn)), const Spacer(), Expanded(child: _PlayerPanel(name: playerNames[opponentId] ?? 'Opponent', symbol: 'Token', isMyTurn: !isMyTurn)),]), const SizedBox(height: 20), const Text('Lude Board - Tokens placed on grid', style: TextStyle(color: Colors.white54, fontSize: 12)), const SizedBox(height: 20), Text(isMyTurn ? 'Your turn' : 'Opponent\'s turn…', style: TextStyle(color: isMyTurn ? Colors.greenAccent : Colors.white60, fontWeight: FontWeight.bold, fontSize: 16)), const SizedBox(height: 20), _DiceRollButton(onRoll: isMyTurn ? () => _rollDice() : null, isMyTurn: isMyTurn), ]),); }, ), );
+    return Scaffold(
+      backgroundColor: context.appColors.background,
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        elevation: 0,
+        title: const Text('Lude'),
+        actions: [
+          IconButton(
+            icon: Icon(_voiceJoined ? Icons.mic : Icons.mic_off),
+            color: _voiceJoined ? Colors.greenAccent : Colors.white54,
+            onPressed: _toggleMic,
+          ),
+        ],
+      ),
+      body: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+        stream: _service.watchGame(widget.roomId),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData || !snapshot.data!.exists) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          final data = snapshot.data!.data()!;
+          state = Map<String, dynamic>.from(data['state'] ?? {});
+          _ensureInitialized(data);
+          _maybeBotMove(data);
+          _handleFinish(data);
+          final players = List<String>.from(data['players'] ?? []);
+          final playerNames = Map<String, dynamic>.from(data['playerNames'] ?? {});
+          final turn = (state ?? {})['turn'] as String?;
+          final isMyTurn = turn == _uid;
+          final opponentId = players.firstWhere((p) => p != _uid, orElse: () => 'opponent');
+          return Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: _PlayerPanel(
+                        name: playerNames[_uid] ?? 'You',
+                        symbol: 'Token',
+                        isMyTurn: isMyTurn,
+                      ),
+                    ),
+                    const Spacer(),
+                    Expanded(
+                      child: _PlayerPanel(
+                        name: playerNames[opponentId] ?? 'Opponent',
+                        symbol: 'Token',
+                        isMyTurn: !isMyTurn,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                const Text(
+                  'Lude Board - Tokens placed on grid',
+                  style: TextStyle(color: Colors.white54, fontSize: 12),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  isMyTurn ? 'Your turn' : 'Opponent\'s turn…',
+                  style: TextStyle(
+                    color: isMyTurn ? Colors.greenAccent : Colors.white60,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                _DiceRollButton(
+                  onRoll: isMyTurn ? () => _rollDice() : null,
+                  isMyTurn: isMyTurn,
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
   }
   void _rollDice() { final dv = _random.nextInt(6) + 1; _service.makeMove(matchId: widget.roomId, userId: _uid, tokenIndex: _random.nextInt(4), diceValue: dv); }
 }
-class _PlayerPanel extends StatelessWidget { final String name; final String symbol; final bool isMyTurn; const _PlayerPanel({required this.name, required this.symbol, required this.isMyTurn}); @override Widget build(BuildContext context) { final c = Theme.of(context).extension<AppTheme>().darkColors; return Container(padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: c.surface, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.white10), child: Column(children: [Text(name, style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)), const SizedBox(height: 4), Text('Tokens: $symbol', style: TextStyle(color: Colors.white54, fontSize: 12)), const SizedBox(height: 4), Text('Turn: ${isMyTurn ? 'Yes' : 'No'}", style: TextStyle(color: isMyTurn ? Colors.greenAccent : Colors.white60, fontWeight: FontWeight.bold, fontSize: 12)),])); } }
-class _DiceRollButton extends StatelessWidget { final VoidCallback? onRoll; final bool isMyTurn; const _DiceRollButton({required this.onRoll, required this.isMyTurn}); @override Widget build(BuildContext context) { return Container(width: double.infinity, height: 50, decoration: BoxDecoration(color: isMyTurn ? Colors.greenAccent : Colors.grey, borderRadius: BorderRadius.circular(25)), child: Center(child: Text('Roll Dice ${isMyTurn ? '(Ready)' : '(Waiting)'}', style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 16)))); } }
+
+class _PlayerPanel extends StatelessWidget {
+  final String name;
+  final String symbol;
+  final bool isMyTurn;
+  const _PlayerPanel({
+    required this.name,
+    required this.symbol,
+    required this.isMyTurn,
+  });
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppTheme.darkColors.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white10),
+      ),
+      child: Column(
+        children: [
+          Text(
+            name,
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Tokens: $symbol',
+            style: TextStyle(color: Colors.white54, fontSize: 12),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Turn: ${isMyTurn ? 'Yes' : 'No'}',
+            style: TextStyle(
+              color: isMyTurn ? Colors.greenAccent : Colors.white60,
+              fontWeight: FontWeight.bold,
+              fontSize: 12,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DiceRollButton extends StatelessWidget {
+  final VoidCallback? onRoll;
+  final bool isMyTurn;
+  const _DiceRollButton({
+    required this.onRoll,
+    required this.isMyTurn,
+  });
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      height: 50,
+      decoration: BoxDecoration(
+        color: isMyTurn ? Colors.greenAccent : Colors.grey,
+        borderRadius: BorderRadius.circular(25),
+      ),
+      child: Center(
+        child: Text(
+          'Roll Dice ${isMyTurn ? '(Ready)' : '(Waiting)'}',
+          style: const TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+          ),
+        ),
+      ),
+    );
+  }
+}
