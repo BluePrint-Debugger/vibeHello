@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../services/follow_service.dart';
+import '../../../core/app_theme.dart';
 
 class UserProfileScreen extends StatelessWidget {
   final String userId;
@@ -14,9 +15,9 @@ class UserProfileScreen extends StatelessWidget {
     final currentUser = FirebaseAuth.instance.currentUser;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0B1020),
+      backgroundColor: context.appColors.background,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0B1020),
+        backgroundColor: context.appColors.background,
         title: const Text('Profile'),
       ),
       body: StreamBuilder<DocumentSnapshot>(
@@ -177,7 +178,7 @@ class _CountBox extends StatelessWidget {
         return Container(
           height: 90,
           decoration: BoxDecoration(
-            color: const Color(0xFF141B34),
+            color: context.appColors.surfaceVariant,
             borderRadius: BorderRadius.circular(18),
           ),
           child: Column(

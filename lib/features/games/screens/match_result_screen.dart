@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/app_theme.dart';
 
 class MatchResultScreen extends StatelessWidget {
   final String playerOneName;
@@ -27,9 +28,9 @@ class MatchResultScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0B1020),
+      backgroundColor: context.appColors.background,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0B1020),
+        backgroundColor: context.appColors.background,
         title: const Text('Match Result'),
       ),
       body: Padding(
@@ -50,7 +51,7 @@ class MatchResultScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
-                color: const Color(0xFF141B34),
+                color: context.appColors.surfaceVariant,
                 borderRadius: BorderRadius.circular(24),
               ),
               child: Row(

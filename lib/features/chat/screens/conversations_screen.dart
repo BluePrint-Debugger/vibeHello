@@ -7,6 +7,7 @@ import 'private_chat_screen.dart';
 import '../services/private_chat_service.dart';
 import '../services/unread_service.dart';
 import 'users_screen.dart';
+import '../../../core/app_theme.dart';
 
 class ConversationsScreen extends StatelessWidget {
   const ConversationsScreen({super.key});
@@ -16,9 +17,9 @@ class ConversationsScreen extends StatelessWidget {
     final currentUser = FirebaseAuth.instance.currentUser;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0B1020),
+      backgroundColor: context.appColors.background,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0B1020),
+        backgroundColor: context.appColors.background,
         title: const Text('Chats'),
         actions: [
           IconButton(

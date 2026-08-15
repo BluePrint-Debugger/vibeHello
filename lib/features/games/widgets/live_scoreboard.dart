@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../services/quiz_room_service.dart';
+import '../../../core/app_theme.dart';
 
 class LiveScoreboard extends StatelessWidget {
   final String roomId;
@@ -20,7 +21,7 @@ class LiveScoreboard extends StatelessWidget {
         return Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: const Color(0xFF141B34),
+            color: context.appColors.surfaceVariant,
             borderRadius: BorderRadius.circular(16),
           ),
           child: Column(

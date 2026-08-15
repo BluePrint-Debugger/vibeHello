@@ -7,6 +7,7 @@ import '../../games/screens/leaderboard_screen.dart';
 import '../../profiles/screens/social_connections_screen.dart';
 import '../../rewards/services/daily_reward_service.dart';
 import '../../rooms/screens/rooms_screen.dart';
+import '../../../core/app_theme.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -25,16 +26,16 @@ class HomeScreen extends StatelessWidget {
     final user = FirebaseAuth.instance.currentUser;
 
     if (user == null) {
-      return const Scaffold(
-        backgroundColor: Color(0xFF050816),
-        body: Center(
+      return Scaffold(
+        backgroundColor: context.appColors.background,
+        body: const Center(
           child: Text('No user found', style: TextStyle(color: Colors.white)),
         ),
       );
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFF050816),
+      backgroundColor: context.appColors.background,
       body: SafeArea(
         child: StreamBuilder<DocumentSnapshot>(
           stream: FirebaseFirestore.instance
@@ -336,7 +337,7 @@ class _ProgressHero extends StatelessWidget {
         children: [
           CircleAvatar(
             radius: 34,
-            backgroundColor: Colors.white.withOpacity(0.16),
+            backgroundColor: Colors.white.withValues(alpha: 0.16),
             child: Text(
               level.toString(),
               style: const TextStyle(
@@ -399,7 +400,7 @@ class _DailyRewardCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFF11182E),
+        color: context.appColors.surface,
         borderRadius: BorderRadius.circular(22),
         border: Border.all(color: Colors.white10),
       ),
@@ -498,7 +499,7 @@ class _ContinuePlayingSection extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: const Color(0xFF11182E),
+          color: context.appColors.surface,
           borderRadius: BorderRadius.circular(22),
           border: Border.all(color: Colors.white10),
         ),
@@ -630,7 +631,7 @@ class _OnlineFriendsSection extends StatelessWidget {
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: friends.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 10),
+            separatorBuilder: (_, _) => const SizedBox(width: 10),
             itemBuilder: (context, index) {
               final friendId = friends[index].id;
 
@@ -651,7 +652,7 @@ class _OnlineFriendsSection extends StatelessWidget {
                     width: 150,
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF11182E),
+                      color: context.appColors.surface,
                       borderRadius: BorderRadius.circular(18),
                       border: Border.all(color: Colors.white10),
                     ),
@@ -728,7 +729,7 @@ class _LeaderboardPreview extends StatelessWidget {
         return Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: const Color(0xFF11182E),
+            color: context.appColors.surface,
             borderRadius: BorderRadius.circular(22),
             border: Border.all(color: Colors.white10),
           ),
@@ -824,14 +825,14 @@ class _WideInfoCard extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: const Color(0xFF11182E),
+          color: context.appColors.surface,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: Colors.white10),
         ),
         child: Row(
           children: [
             CircleAvatar(
-              backgroundColor: Colors.deepPurpleAccent.withOpacity(0.18),
+              backgroundColor: Colors.deepPurpleAccent.withValues(alpha: 0.18),
               child: Icon(icon, color: Colors.deepPurpleAccent),
             ),
             const SizedBox(width: 12),
@@ -881,14 +882,14 @@ class _ActionCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: const Color(0xFF11182E),
+          color: context.appColors.surface,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: Colors.white10),
         ),
         child: Row(
           children: [
             CircleAvatar(
-              backgroundColor: color.withOpacity(0.18),
+              backgroundColor: color.withValues(alpha: 0.18),
               child: Icon(icon, color: color),
             ),
             const SizedBox(width: 10),

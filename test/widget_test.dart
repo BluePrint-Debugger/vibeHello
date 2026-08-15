@@ -1,30 +1,23 @@
-// This is a basic Flutter widget test.
+// Basic smoke test for the ViBeHeLLo app.
 //
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
+// The previous version of this file was leftover boilerplate from
+// `flutter create` - it referenced a `MyApp` counter-demo widget that was
+// never part of this project, and pumped it expecting a '+' button and a
+// digit counter that don't exist here.
+//
+// NOTE: VibeHelloApp (see lib/main.dart) calls Firebase.initializeApp() and
+// FirebaseAuth.instance.currentUser during build, so pumping it directly in
+// a plain widget test will fail without Firebase test setup (e.g. a fake
+// FirebaseAuth via mocks, or Firebase's own test harness). Wiring that up is
+// a separate task from fixing the compile error this file previously had -
+// this replacement at least compiles and passes, and documents what a real
+// test here would need.
 
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:vibehello/main.dart';
-
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
-
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
-
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
-
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+  testWidgets('placeholder smoke test', (WidgetTester tester) async {
+    // TODO: pump VibeHelloApp once Firebase is mocked/initialized for tests.
+    expect(1 + 1, 2);
   });
 }

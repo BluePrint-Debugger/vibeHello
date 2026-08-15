@@ -58,28 +58,57 @@ class MatchmakingService {
       'createdAt': FieldValue.serverTimestamp(),
     });
 
-    await Future.delayed(const Duration(seconds: 5));
+    final botId = _botIdFor(gameType);
+    final botName = _botNameFor(gameType);
 
-    final queueSnapshot = await queueDoc.get();
+    final botMatch = await _firestore.collection('game_matches').add({
+      'gameType': gameType,
+      'players': [userId, botId],
+      'playerNames': {userId: userName, botId: botName},
+      'scores': {userId: 0, botId: 0},
+      'status': 'active',
+      'winnerId': null,
+      'isBotMatch': true,
+      'agoraChannelName': 'bot_${DateTime.now().millisecondsSinceEpoch}',
+      'createdAt': FieldValue.serverTimestamp(),
+    });
 
-    if (queueSnapshot.exists) {
-      final botMatch = await _firestore.collection('game_matches').add({
-        'gameType': gameType,
-        'players': [userId, 'bot_quiz_master'],
-        'playerNames': {userId: userName, 'bot_quiz_master': 'Quiz Bot'},
-        'scores': {userId: 0, 'bot_quiz_master': 0},
-        'status': 'active',
-        'winnerId': null,
-        'isBotMatch': true,
-        'agoraChannelName': 'bot_${DateTime.now().millisecondsSinceEpoch}',
-        'createdAt': FieldValue.serverTimestamp(),
-      });
+    await queueDoc.delete();
 
-      await queueDoc.delete();
+    return botMatch.id;
+  }
 
-      return botMatch.id;
+  /// Deterministic bot id per game type, e.g. 'Snake & Ladder' -> 'bot_snake_ladder'.
+  String _botIdFor(String gameType) {
+    final slug = gameType
+        .toLowerCase()
+        .replaceAll(RegExp(r'[^a-z0-9]+'), '_')
+        .replaceAll(RegExp(r'^_+|_+$'), '');
+    return 'bot_$slug';
+  }
+
+  String _botNameFor(String gameType) {
+    switch (gameType) {
+      case 'Quiz Battle':
+        return 'Quiz Bot';
+      case 'Snake & Ladder':
+        return 'Ladder Bot';
+      case 'Knife Hit':
+        return 'Knife Bot';
+      case 'Sheep Fight':
+        return 'Rowdy Ram';
+      case 'Fruit Master':
+        return 'Slicer Bot';
+      case 'Tic Tac Toe':
+        return 'Grid Bot';
+      case 'Rock Paper Scissors':
+        return 'Shuffle Bot';
+      case 'Connect Four':
+        return 'Drop Master';
+      case 'Memory Match':
+        return 'Recall Bot';
+      default:
+        return '$gameType Bot';
     }
-
-    return queueDoc.id;
   }
 }

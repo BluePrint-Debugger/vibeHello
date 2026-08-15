@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../models/room_model.dart';
 import '../services/room_service.dart';
 import 'room_detail_screen.dart';
+import '../../../core/app_theme.dart';
 
 class RoomsScreen extends StatelessWidget {
   const RoomsScreen({super.key});
@@ -21,7 +22,7 @@ class RoomsScreen extends StatelessWidget {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
-              backgroundColor: const Color(0xFF11182E),
+              backgroundColor: context.appColors.surface,
               title: const Text(
                 'Create Room',
                 style: TextStyle(color: Colors.white),
@@ -38,8 +39,8 @@ class RoomsScreen extends StatelessWidget {
                     ),
                   ),
                   DropdownButtonFormField<String>(
-                    value: selectedRoomType,
-                    dropdownColor: const Color(0xFF11182E),
+                    initialValue: selectedRoomType,
+                    dropdownColor: context.appColors.surface,
                     style: const TextStyle(color: Colors.white),
                     decoration: const InputDecoration(
                       labelText: 'Room Type',
@@ -122,7 +123,7 @@ class RoomsScreen extends StatelessWidget {
                       return;
                     }
 
-                    await RoomService().createRoom(
+                    await RoomService.instance.createRoom(
                       title: titleController.text.trim(),
                       createdBy: user.uid,
                       isPrivate: isPrivate,
@@ -159,7 +160,7 @@ class RoomsScreen extends StatelessWidget {
       context: context,
       builder: (_) {
         return AlertDialog(
-          backgroundColor: const Color(0xFF11182E),
+          backgroundColor: context.appColors.surface,
           title: const Text(
             'Private Room',
             style: TextStyle(color: Colors.white),
@@ -209,7 +210,7 @@ class RoomsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF050816),
+      backgroundColor: context.appColors.background,
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: const Color(0xFF6C63FF),
         onPressed: () => _showCreateRoomDialog(context),
@@ -220,7 +221,7 @@ class RoomsScreen extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
           child: StreamBuilder<List<RoomModel>>(
-            stream: RoomService().getRooms(),
+            stream: RoomService.instance.getRooms(),
             builder: (context, snapshot) {
               final rooms = snapshot.data ?? [];
               final totalOnline = rooms.fold<int>(
@@ -343,6 +344,7 @@ class RoomsScreen extends StatelessWidget {
   }
 }
 
+
 class _RoomStatCard extends StatelessWidget {
   final IconData icon;
   final String title;
@@ -362,14 +364,14 @@ class _RoomStatCard extends StatelessWidget {
       height: 86,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFF11182E),
+        color: context.appColors.surface,
         borderRadius: BorderRadius.circular(22),
         border: Border.all(color: Colors.white10),
       ),
       child: Row(
         children: [
           CircleAvatar(
-            backgroundColor: color.withOpacity(0.18),
+            backgroundColor: color.withValues(alpha: 0.18),
             child: Icon(icon, color: color),
           ),
           const SizedBox(width: 12),
@@ -411,11 +413,11 @@ class _RoomCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 14),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF11182E),
+        color: context.appColors.surface,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
           color: isLive
-              ? const Color(0xFF6C63FF).withOpacity(0.5)
+              ? const Color(0xFF6C63FF).withValues(alpha: 0.5)
               : Colors.white10,
         ),
       ),

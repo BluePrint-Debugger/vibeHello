@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import '../widgets/follow_action_button.dart';
 import '../../chat/screens/private_chat_screen.dart';
 import 'follow_action_button.dart';
 

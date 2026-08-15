@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../widgets/connection_user_list.dart';
 import '../widgets/friends_user_list.dart';
+import '../../../core/app_theme.dart';
 
 class SocialConnectionsScreen extends StatelessWidget {
   final int initialIndex;
@@ -15,7 +16,7 @@ class SocialConnectionsScreen extends StatelessWidget {
       length: 3,
       initialIndex: initialIndex,
       child: Scaffold(
-        backgroundColor: Color(0xFF0B1020),
+        backgroundColor: context.appColors.background,
         appBar: const TabBarAppBar(),
         body: TabBarView(
           children: [
@@ -38,7 +39,7 @@ class TabBarAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      backgroundColor: const Color(0xFF0B1020),
+      backgroundColor: context.appColors.background,
       title: const Text('Connections'),
       bottom: const TabBar(
         tabs: [

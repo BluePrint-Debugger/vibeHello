@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 
 import '../../../services/presence_service.dart';
 import 'social_connections_screen.dart';
+import '../widgets/theme_toggle_button.dart';
+import '../../../core/app_theme.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -22,16 +24,16 @@ class ProfileScreen extends StatelessWidget {
     final user = FirebaseAuth.instance.currentUser;
 
     if (user == null) {
-      return const Scaffold(
-        backgroundColor: Color(0xFF0B1020),
-        body: Center(
+      return Scaffold(
+        backgroundColor: context.appColors.background,
+        body: const Center(
           child: Text('No user found', style: TextStyle(color: Colors.white)),
         ),
       );
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFF050816),
+      backgroundColor: context.appColors.background,
       body: SafeArea(
         child: StreamBuilder<DocumentSnapshot>(
           stream: FirebaseFirestore.instance
@@ -67,15 +69,18 @@ class ProfileScreen extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
               child: Column(
                 children: [
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: IconButton(
-                      onPressed: () async {
-                        await PresenceService().setOffline();
-                        await FirebaseAuth.instance.signOut();
-                      },
-                      icon: const Icon(Icons.logout, color: Colors.white70),
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      const ThemeToggleButton(),
+                      IconButton(
+                        onPressed: () async {
+                          await PresenceService().setOffline();
+                          await FirebaseAuth.instance.signOut();
+                        },
+                        icon: const Icon(Icons.logout, color: Colors.white70),
+                      ),
+                    ],
                   ),
 
                   Stack(
@@ -91,7 +96,7 @@ class ProfileScreen extends StatelessWidget {
                         ),
                         child: CircleAvatar(
                           radius: 45,
-                          backgroundColor: const Color(0xFF141B34),
+                          backgroundColor: context.appColors.surfaceVariant,
                           backgroundImage: photo.isNotEmpty
                               ? NetworkImage(photo)
                               : null,
@@ -279,7 +284,7 @@ class _ProgressCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: const Color(0xFF11182E),
+        color: context.appColors.surface,
         borderRadius: BorderRadius.circular(26),
         border: Border.all(color: Colors.white10),
       ),
@@ -386,7 +391,7 @@ class _SocialCountCard extends StatelessWidget {
           child: Container(
             height: 72,
             decoration: BoxDecoration(
-              color: const Color(0xFF11182E),
+              color: context.appColors.surface,
               borderRadius: BorderRadius.circular(22),
               border: Border.all(color: Colors.white10),
             ),
@@ -430,7 +435,7 @@ class _StatCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: const Color(0xFF11182E),
+        color: context.appColors.surface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Colors.white10),
       ),

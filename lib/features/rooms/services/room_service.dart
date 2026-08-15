@@ -1,54 +1,130 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import '../models/member_model.dart';
 import '../models/room_model.dart';
-import 'room_seat_service.dart';
+import '../models/seat_model.dart';
+import '../repositories/room_repository.dart';
+import 'engines/admin_engine.dart';
+import 'engines/event_engine.dart';
+import 'engines/lobby_engine.dart';
+import 'engines/seat_engine.dart';
+import 'engines/voice_engine.dart';
 
 class RoomService {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final RoomSeatService _seatService = RoomSeatService();
+  RoomService._();
 
-  Stream<List<RoomModel>> getRooms() {
-    return _firestore
-        .collection('rooms')
-        .orderBy('createdAt', descending: true)
-        .snapshots()
+  static final RoomService instance = RoomService._();
+
+  final RoomRepository _repository = RoomRepository.instance;
+
+  //============================================================
+  // Engines
+  //============================================================
+
+  late final SeatEngine seat = SeatEngine(_repository);
+
+  late final VoiceEngine voice = VoiceEngine(_repository);
+
+  late final AdminEngine admin = AdminEngine(_repository);
+
+  late final LobbyEngine lobby = LobbyEngine(_repository);
+
+  late final EventEngine event = EventEngine(_repository);
+
+  //============================================================
+  // Streams
+  //============================================================
+
+  Stream<List<SeatModel>> streamSeats(String roomId) {
+    return _repository
+        .seatStream(roomId)
         .map(
           (snapshot) => snapshot.docs
-              .map((doc) => RoomModel.fromMap(doc.id, doc.data()))
+              .map((doc) => SeatModel.fromMap(doc.data()))
               .toList(),
         );
   }
 
-  Future<void> createRoom({
+  Stream<List<MemberModel>> streamMembers(String roomId) {
+    return _repository
+        .memberStream(roomId)
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => MemberModel.fromMap(doc.data()))
+              .toList(),
+        );
+  }
+
+  //============================================================
+  // Helpers
+  //============================================================
+
+  Future<List<MemberModel>> getMembers(String roomId) async {
+    final snapshot = await _repository.getMembers(roomId);
+
+    return snapshot.docs.map((doc) => MemberModel.fromMap(doc.data())).toList();
+  }
+
+  Future<SeatModel?> getSeat(String roomId, int seatNumber) async {
+    final doc = await _repository.getSeat(roomId, seatNumber);
+
+    if (!doc.exists) {
+      return null;
+    }
+
+    return SeatModel.fromMap(doc.data()!);
+  }
+
+  Future<Map<String, dynamic>?> getRoom(String roomId) async {
+    final doc = await _repository.getRoom(roomId);
+
+    if (!doc.exists) {
+      return null;
+    }
+
+    return doc.data();
+  }
+
+  //============================================================
+  // Room List
+  //============================================================
+
+  /// Live list of every room, newest first. Used by the room browser.
+  Stream<List<RoomModel>> getRooms() {
+    return _repository.roomsStream().map(
+      (snapshot) => snapshot.docs
+          .map((doc) => RoomModel.fromMap(doc.id, doc.data()))
+          .toList(),
+    );
+  }
+
+  /// Creates a new room and returns its id.
+  Future<String> createRoom({
     required String title,
     required String createdBy,
     required bool isPrivate,
     String? password,
     required String roomType,
+    int maxSeats = 8,
   }) async {
-    final roomRef = await _firestore.collection('rooms').add({
+    final ref = await _repository.createRoom({
       'title': title,
       'createdBy': createdBy,
       'usersCount': 0,
       'isPrivate': isPrivate,
       'password': password,
       'roomType': roomType,
-      'seatLimit': 8,
-      'maxSeatLimit': 12,
-      'createdAt': FieldValue.serverTimestamp(),
+      'hostId': createdBy,
+      'maxSeats': maxSeats,
+      'chatEnabled': true,
+      'lobbyEnabled': true,
     });
+    return ref.id;
+  }
 
-    final userDoc = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(createdBy)
-        .get();
+  //============================================================
+  // Room
+  //============================================================
 
-    final userData = userDoc.data() ?? {};
-
-    await _seatService.setupRoomSeats(
-      roomId: roomRef.id,
-      creatorId: createdBy,
-      creatorName: userData['name'] ?? 'Player',
-      creatorPhoto: userData['photo'] ?? '',
-    );
+  Future<void> updateRoom(String roomId, Map<String, dynamic> data) {
+    return _repository.updateRoom(roomId, data);
   }
 }

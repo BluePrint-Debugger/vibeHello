@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import 'leaderboard_screen.dart';
 import 'matchmaking_screen.dart';
+import '../../../core/app_theme.dart';
 
 class GamesScreen extends StatelessWidget {
   const GamesScreen({super.key});
@@ -13,7 +14,7 @@ class GamesScreen extends StatelessWidget {
     final user = FirebaseAuth.instance.currentUser;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF050816),
+      backgroundColor: context.appColors.background,
       body: SafeArea(
         child: StreamBuilder<DocumentSnapshot>(
           stream: user == null
@@ -113,16 +114,152 @@ class GamesScreen extends StatelessWidget {
                       ),
 
                       _FeaturedGameCard(
-                        title: 'New Game',
-                        subtitle: 'Something exciting is on the way',
-                        icon: Icons.extension,
+                        title: 'Snake & Ladder',
+                        subtitle: 'Classic board game, roll and race to 100',
+                        icon: Icons.casino,
                         color: Colors.orangeAccent,
-                        badgeText: 'Coming Soon',
-                        buttonText: 'Stay Tuned',
+                        badgeText: 'Play Now',
+                        buttonText: 'Play Now',
                         onTap: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('New game coming soon'),
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const MatchmakingScreen(
+                                gameType: 'Snake & Ladder',
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+
+                      _FeaturedGameCard(
+                        title: 'Knife Hit',
+                        subtitle: 'Time your throws, don\'t hit a knife',
+                        icon: Icons.gps_fixed,
+                        color: Colors.redAccent,
+                        badgeText: 'Play Now',
+                        buttonText: 'Play Now',
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const MatchmakingScreen(
+                                gameType: 'Knife Hit',
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+
+                      _FeaturedGameCard(
+                        title: 'Sheep Fight',
+                        subtitle: 'Tap fast, push the rope, win the duel',
+                        icon: Icons.pets,
+                        color: Colors.lightGreenAccent,
+                        badgeText: 'Play Now',
+                        buttonText: 'Play Now',
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const MatchmakingScreen(
+                                gameType: 'Sheep Fight',
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+
+                      _FeaturedGameCard(
+                        title: 'Fruit Master',
+                        subtitle: 'Slice fruit, dodge bombs, beat the clock',
+                        icon: Icons.content_cut,
+                        color: Colors.pinkAccent,
+                        badgeText: 'Play Now',
+                        buttonText: 'Play Now',
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const MatchmakingScreen(
+                                gameType: 'Fruit Master',
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+
+                      _FeaturedGameCard(
+                        title: 'Tic Tac Toe',
+                        subtitle: 'Classic 3x3 grid, outsmart your rival',
+                        icon: Icons.grid_on,
+                        color: Colors.cyanAccent,
+                        badgeText: 'Play Now',
+                        buttonText: 'Play Now',
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const MatchmakingScreen(
+                                gameType: 'Tic Tac Toe',
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+
+                      _FeaturedGameCard(
+                        title: 'Rock Paper Scissors',
+                        subtitle: 'Best of 5, read your opponent',
+                        icon: Icons.pan_tool,
+                        color: Colors.amberAccent,
+                        badgeText: 'Play Now',
+                        buttonText: 'Play Now',
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const MatchmakingScreen(
+                                gameType: 'Rock Paper Scissors',
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+
+                      _FeaturedGameCard(
+                        title: 'Connect Four',
+                        subtitle: 'Drop pieces, line up four to win',
+                        icon: Icons.grid_view,
+                        color: Colors.redAccent,
+                        badgeText: 'Play Now',
+                        buttonText: 'Play Now',
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const MatchmakingScreen(
+                                gameType: 'Connect Four',
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+
+                      _FeaturedGameCard(
+                        title: 'Memory Match',
+                        subtitle: 'Flip cards, find pairs, outscore them',
+                        icon: Icons.style,
+                        color: Colors.tealAccent,
+                        badgeText: 'Play Now',
+                        buttonText: 'Play Now',
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const MatchmakingScreen(
+                                gameType: 'Memory Match',
+                              ),
                             ),
                           );
                         },
@@ -168,7 +305,7 @@ class GamesScreen extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF11182E),
+                      color: context.appColors.surface,
                       borderRadius: BorderRadius.circular(22),
                       border: Border.all(color: Colors.white10),
                     ),
@@ -277,12 +414,12 @@ class _FeaturedGameCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: const Color(0xFF11182E),
+          color: context.appColors.surface,
           borderRadius: BorderRadius.circular(26),
-          border: Border.all(color: color.withOpacity(0.55)),
+          border: Border.all(color: color.withValues(alpha: 0.55)),
           boxShadow: [
             BoxShadow(
-              color: color.withOpacity(0.16),
+              color: color.withValues(alpha: 0.16),
               blurRadius: 18,
               offset: const Offset(0, 8),
             ),
@@ -296,7 +433,7 @@ class _FeaturedGameCard extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.15),
+                  color: color.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: Text(
@@ -315,7 +452,7 @@ class _FeaturedGameCard extends StatelessWidget {
             Center(
               child: CircleAvatar(
                 radius: 36,
-                backgroundColor: color.withOpacity(0.18),
+                backgroundColor: color.withValues(alpha: 0.18),
                 child: Icon(icon, color: color, size: 46),
               ),
             ),
@@ -350,8 +487,8 @@ class _FeaturedGameCard extends StatelessWidget {
               height: 36,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: color.withOpacity(0.75)),
-                color: color.withOpacity(0.10),
+                border: Border.all(color: color.withValues(alpha: 0.75)),
+                color: color.withValues(alpha: 0.10),
               ),
               child: Row(
                 children: [
@@ -389,7 +526,7 @@ class _DailyBonusCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: const Color(0xFF21124D),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.deepPurpleAccent.withOpacity(0.5)),
+        border: Border.all(color: Colors.deepPurpleAccent.withValues(alpha: 0.5)),
       ),
       child: Row(
         children: [
@@ -434,7 +571,7 @@ class _MiniStat extends StatelessWidget {
       children: [
         CircleAvatar(
           radius: 21,
-          backgroundColor: color.withOpacity(0.16),
+          backgroundColor: color.withValues(alpha: 0.16),
           child: Icon(icon, color: color, size: 20),
         ),
         const SizedBox(height: 8),

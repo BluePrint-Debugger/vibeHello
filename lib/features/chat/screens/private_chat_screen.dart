@@ -1,12 +1,15 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'call_screen.dart';
+import '../../../core/agora_token_service.dart';
+import '../../../core/app_theme.dart';
 import '../../profiles/services/follow_service.dart';
 import '../services/typing_service.dart';
 import '../services/unread_service.dart';
 import '../services/private_chat_service.dart';
 import '../services/seen_service.dart';
+import '../services/call_signaling_service.dart';
+import 'call_screen.dart';
 import '../../games/screens/matchmaking_screen.dart';
 import '../../games/services/game_invite_service.dart';
 import '../../profiles/screens/user_profile_screen.dart';
@@ -38,6 +41,66 @@ class _PrivateChatScreenState extends State<PrivateChatScreen> {
   final SeenService seenService = SeenService();
 
   final UnreadService unreadService = UnreadService();
+
+  final CallSignalingService callSignaling = CallSignalingService();
+
+  final AgoraTokenService agoraTokenService = AgoraTokenService();
+
+  Future<void> _startCall({required bool isVideoCall}) async {
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser == null) return;
+
+    final channelName = chatService.getChatId(
+      currentUser.uid,
+      widget.receiverId,
+    );
+
+    final AgoraTokenResult tokenResult;
+    try {
+      tokenResult = await agoraTokenService.fetchToken(
+        channelName: channelName,
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            "Couldn't start the call - calling isn't set up yet. "
+            'Ask your admin to deploy the getAgoraToken function.',
+          ),
+        ),
+      );
+      return;
+    }
+
+    final callId = await callSignaling.startCall(
+      callerId: currentUser.uid,
+      callerName: currentUser.displayName ?? 'Someone',
+      calleeId: widget.receiverId,
+      calleeName: widget.receiverName,
+      channelName: channelName,
+      isVideoCall: isVideoCall,
+    );
+
+    if (!mounted) return;
+
+    final result = await Navigator.push<String?>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => CallScreen(
+          appId: tokenResult.appId,
+          token: tokenResult.token,
+          channelName: channelName,
+          isVideoCall: isVideoCall,
+          callId: callId,
+        ),
+      ),
+    );
+
+    if (result != null && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result)));
+    }
+  }
 
   @override
   void initState() {
@@ -87,13 +150,13 @@ class _PrivateChatScreenState extends State<PrivateChatScreen> {
     final currentUser = FirebaseAuth.instance.currentUser;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0B1020),
+      backgroundColor: context.appColors.background,
 
       appBar: AppBar(
         automaticallyImplyLeading: false,
         leadingWidth: 40,
         titleSpacing: 0,
-        backgroundColor: const Color(0xFF0B1020),
+        backgroundColor: context.appColors.background,
 
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -180,16 +243,12 @@ class _PrivateChatScreenState extends State<PrivateChatScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   IconButton(
-                    onPressed: () {
-                      // voice call screen
-                    },
+                    onPressed: () => _startCall(isVideoCall: false),
                     icon: const Icon(Icons.call, color: Colors.greenAccent),
                   ),
 
                   IconButton(
-                    onPressed: () {
-                      // video call screen
-                    },
+                    onPressed: () => _startCall(isVideoCall: true),
                     icon: const Icon(Icons.videocam, color: Colors.orange),
                   ),
                 ],
@@ -261,7 +320,7 @@ class _PrivateChatScreenState extends State<PrivateChatScreen> {
                         decoration: BoxDecoration(
                           color: isMe
                               ? const Color(0xFF6C63FF)
-                              : const Color(0xFF141B34),
+                              : context.appColors.surfaceVariant,
 
                           borderRadius: BorderRadius.circular(16),
                         ),
@@ -311,7 +370,7 @@ class _PrivateChatScreenState extends State<PrivateChatScreen> {
                           hintText: 'Type a message...',
                           hintStyle: const TextStyle(color: Colors.white54),
                           filled: true,
-                          fillColor: const Color(0xFF141B34),
+                          fillColor: context.appColors.surfaceVariant,
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(18),
                             borderSide: BorderSide.none,
@@ -337,7 +396,7 @@ class _PrivateChatScreenState extends State<PrivateChatScreen> {
 
                             showModalBottomSheet(
                               context: context,
-                              backgroundColor: const Color(0xFF141B34),
+                              backgroundColor: context.appColors.surfaceVariant,
                               shape: const RoundedRectangleBorder(
                                 borderRadius: BorderRadius.vertical(
                                   top: Radius.circular(24),
@@ -435,7 +494,7 @@ class _GameResultCard extends StatelessWidget {
         constraints: const BoxConstraints(maxWidth: 300),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: const Color(0xFF141B34),
+          color: context.appColors.surfaceVariant,
           borderRadius: BorderRadius.circular(18),
         ),
         child: Column(
@@ -645,7 +704,7 @@ class _GameInviteCardState extends State<_GameInviteCard> {
         constraints: const BoxConstraints(maxWidth: 240),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: const Color(0xFF141B34),
+          color: context.appColors.surfaceVariant,
           borderRadius: BorderRadius.circular(18),
         ),
         child: Column(
@@ -776,7 +835,7 @@ class _GamePicker extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFF141B34),
+        color: context.appColors.surfaceVariant,
         borderRadius: BorderRadius.circular(18),
       ),
       child: Wrap(

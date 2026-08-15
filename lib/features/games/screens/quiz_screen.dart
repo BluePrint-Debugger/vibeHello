@@ -8,10 +8,11 @@ import 'dart:math';
 import 'match_result_screen.dart';
 import '../services/game_chat_service.dart';
 import '../services/game_voice_service.dart';
+import '../../../core/agora_token_service.dart';
 import '../services/game_voice_status_service.dart';
 import '../widgets/game_voice_players_bar.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/xp_service.dart';
+import '../../../core/app_theme.dart';
 
 class QuizScreen extends StatefulWidget {
   final String? roomId;
@@ -51,6 +52,7 @@ class _QuizScreenState extends State<QuizScreen> {
     },
   ];
   final GameVoiceService gameVoiceService = GameVoiceService();
+  final AgoraTokenService agoraTokenService = AgoraTokenService();
   bool voiceJoined = false;
   bool micMuted = true;
 
@@ -169,6 +171,9 @@ class _QuizScreenState extends State<QuizScreen> {
         );
       }
     }
+
+    if (!mounted) return;
+
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
@@ -237,7 +242,7 @@ class _QuizScreenState extends State<QuizScreen> {
     final question = questions[currentQuestion];
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0B1020),
+      backgroundColor: context.appColors.background,
       appBar: AppBar(
         backgroundColor: Colors.black,
         surfaceTintColor: Colors.black,
@@ -275,10 +280,12 @@ class _QuizScreenState extends State<QuizScreen> {
             onPressed: () async {
               try {
                 if (!voiceJoined) {
+                  final tokenResult = await agoraTokenService.fetchToken(
+                    channelName: widget.roomId ?? 'quiz_test_channel',
+                  );
                   await gameVoiceService.init(
-                    appId: '96ce746126aa481c98cd394db7e1413a',
-                    token:
-                        '007eJxTYDi2TsfNdme5+6MHJ3VfX+tOXPs2N0Rr1/o0+zROd68Ns1gUGCzNklPNTcwMjcwSE00sDJMtLZJTjC1NUpLMUw1NDI0TD1yWymoIZGRgFc1iZGSAQBCfkyEsMynVIzUnJ5+BAQD9PSB/',
+                    appId: tokenResult.appId,
+                    token: tokenResult.token,
                     channelName: widget.roomId ?? 'quiz_test_channel',
                   );
 
@@ -373,8 +380,8 @@ class _QuizScreenState extends State<QuizScreen> {
                               ? Colors.green
                               : option == selectedAnswer
                               ? Colors.red
-                              : const Color(0xFF141B34)
-                        : const Color(0xFF141B34),
+                              : context.appColors.surfaceVariant
+                        : context.appColors.surfaceVariant,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
                   child: Text(

@@ -1,6 +1,12 @@
+import 'dart:async';
+
 import 'package:agora_rtc_engine/agora_rtc_engine.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
+
+import '../services/call_signaling_service.dart';
+import '../../../core/app_theme.dart';
 
 class CallScreen extends StatefulWidget {
   final String appId;
@@ -8,12 +14,18 @@ class CallScreen extends StatefulWidget {
   final String channelName;
   final bool isVideoCall;
 
+  /// Id of the Firestore call doc created by CallSignalingService.
+  /// Optional so CallScreen can still be used standalone (e.g. game voice
+  /// features that don't need ringing/accept/decline).
+  final String? callId;
+
   const CallScreen({
     super.key,
     required this.appId,
     required this.token,
     required this.channelName,
     required this.isVideoCall,
+    this.callId,
   });
 
   @override
@@ -23,15 +35,34 @@ class CallScreen extends StatefulWidget {
 class _CallScreenState extends State<CallScreen> {
   late RtcEngine engine;
 
+  final CallSignalingService _signaling = CallSignalingService();
+  StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _callSub;
+
   int? remoteUid;
   bool localUserJoined = false;
   bool muted = false;
   bool cameraOff = false;
+  String? _endedReason;
 
   @override
   void initState() {
     super.initState();
     initAgora();
+    _watchCallStatus();
+  }
+
+  void _watchCallStatus() {
+    if (widget.callId == null) return;
+
+    _callSub = _signaling.watchCall(widget.callId!).listen((snap) {
+      final status = snap.data()?['status'] as String?;
+      if (!mounted) return;
+
+      if (status == 'declined' || status == 'ended') {
+        _endedReason = status == 'declined' ? 'Call declined' : 'Call ended';
+        endCall(notifySignaling: false);
+      }
+    });
   }
 
   Future<void> initAgora() async {
@@ -75,6 +106,7 @@ class _CallScreenState extends State<CallScreen> {
 
   @override
   void dispose() {
+    _callSub?.cancel();
     engine.leaveChannel();
     engine.release();
     super.dispose();
@@ -92,11 +124,15 @@ class _CallScreenState extends State<CallScreen> {
     setState(() {});
   }
 
-  Future<void> endCall() async {
+  Future<void> endCall({bool notifySignaling = true}) async {
+    if (notifySignaling && widget.callId != null) {
+      await _signaling.end(widget.callId!);
+    }
+
     await engine.leaveChannel();
 
     if (mounted) {
-      Navigator.pop(context);
+      Navigator.pop(context, _endedReason);
     }
   }
 
@@ -132,7 +168,7 @@ class _CallScreenState extends State<CallScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0B1020),
+      backgroundColor: context.appColors.background,
       body: SafeArea(
         child: Stack(
           children: [

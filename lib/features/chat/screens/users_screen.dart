@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../profiles/services/follow_service.dart';
 import 'private_chat_screen.dart';
+import '../../../core/app_theme.dart';
 
 class UsersScreen extends StatelessWidget {
   const UsersScreen({super.key});
@@ -13,9 +14,9 @@ class UsersScreen extends StatelessWidget {
     final currentUser = FirebaseAuth.instance.currentUser;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0B1020),
+      backgroundColor: context.appColors.background,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0B1020),
+        backgroundColor: context.appColors.background,
         title: const Text('Messages'),
       ),
       body: StreamBuilder<QuerySnapshot>(

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../services/quiz_room_service.dart';
 import 'quiz_screen.dart';
+import '../../../core/app_theme.dart';
 
 class MultiplayerQuizLobbyScreen extends StatefulWidget {
   const MultiplayerQuizLobbyScreen({super.key});
@@ -63,9 +64,9 @@ class _MultiplayerQuizLobbyScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0B1020),
+      backgroundColor: context.appColors.background,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0B1020),
+        backgroundColor: context.appColors.background,
         title: const Text('Multiplayer Quiz'),
       ),
       body: Padding(
@@ -88,7 +89,7 @@ class _MultiplayerQuizLobbyScreenState
                 hintText: 'Enter room ID',
                 hintStyle: const TextStyle(color: Colors.white54),
                 filled: true,
-                fillColor: const Color(0xFF141B34),
+                fillColor: context.appColors.surfaceVariant,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(18),
                   borderSide: BorderSide.none,
