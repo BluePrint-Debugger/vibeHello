@@ -1,5 +1,3 @@
-import 'package:intl/intl.dart';
-
 class DateTimeUtils {
   DateTimeUtils._();
 
@@ -23,11 +21,13 @@ class DateTimeUtils {
       return '${difference.inDays} day${difference.inDays > 1 ? 's' : ''} ago';
     }
 
-    return _formatDate(date);
-  }
+    final day = date.day > 9 ? date.day : '0${date.day}';
+    final month = date.month > 9 ? date.month : '0${date.month}';
+    final year = date.year;
+    final hour = date.hour > 9 ? date.hour : '0${date.hour}';
+    final minute = date.minute > 9 ? date.minute : '0${date.minute}';
 
-  static String _formatDate(DateTime date) {
-    return DateFormat('MMM d, yyyy · HH:mm').format(date);
+    return '$year-$month-$day $hour:$minute';
   }
 
   static String formatTimestamp(dynamic timestamp) {

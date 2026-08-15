@@ -1,4 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
+
 import '../../../core/app_theme.dart';
 
 class MatchResultScreen extends StatelessWidget {
@@ -24,6 +28,13 @@ class MatchResultScreen extends StatelessWidget {
     required this.onPlayAgain,
     required this.onMoreGame,
   });
+
+  Future<void> _rateApp() async {
+    final uri = Uri.parse('https://play.google.com/store/apps/details?id=vibehello');
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -120,6 +131,18 @@ class MatchResultScreen extends StatelessWidget {
                 child: const Text('More Game'),
               ),
             ),
+
+            const SizedBox(height: 14),
+            SizedBox(
+              width: double.infinity,
+              height: 55,
+              child: OutlinedButton(
+                onPressed: () => _rateApp(),
+                child: const Text('Rate Us'),
+              ),
+            ),
+
+            const SizedBox(height: 14),
           ],
         ),
       ),
